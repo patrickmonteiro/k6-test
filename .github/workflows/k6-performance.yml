@@ -1,0 +1,59 @@
+name: Performance Test
+
+on:
+  push:
+    branches: [ main ]  # Executa em cada push na branch main
+  pull_request:
+    branches: [ main ]  # Executa também em PRs para main
+  workflow_dispatch:    # Mantém a opção de execução manual
+
+jobs:
+  k6_load_test:
+    name: K6 Load Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+        
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Instalar K6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Executar teste de performance
+        run: k6 run tests/performance/test.js
+
+      - name: Publicar relatório HTML
+        if: always()  # Executa mesmo se o teste falhar
+        uses: actions/upload-artifact@v3
+        with:
+          name: k6-report-${{ github.sha }}  # Adiciona o SHA do commit ao nome do relatório
+          path: summary.html
+          retention-days: 30
+
+      - name: Verificar falhas nos testes
+        if: ${{ failure() }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = {
+              title: '❌ Falha nos testes de performance',
+              body: `Os testes de performance falharam no commit ${context.sha}.
+                    \nAutor: ${context.actor}
+                    \nPara mais detalhes, verifique os logs da execução.`,
+              labels: ['performance', 'bug']
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ...issue
+            })
