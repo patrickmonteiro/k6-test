@@ -27,3 +27,4 @@
 */.yarnignore
 */.yarn-integrity
 */.yarn-metadata.json
+./tests/performnce/node_modules
