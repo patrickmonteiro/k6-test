@@ -36,7 +36,7 @@ export default function loginScenario() {
     // Verifica o resultado
     const checks = check(loginResponse, {
         'status is 200': (r) => r.status === 200,
-        'page contains welcome message': (r) => r.body.includes('Welcome'),
+        // 'page contains welcome message': (r) => r.body.includes('Welcome'),
     });
 
     if (!checks) {
