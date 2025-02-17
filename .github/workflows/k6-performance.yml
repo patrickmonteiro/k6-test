@@ -14,10 +14,10 @@ jobs:
     
     steps:
       - name: Checkout código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Configurar Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           
@@ -34,7 +34,7 @@ jobs:
 
       - name: Publicar relatório HTML
         if: always()  # Executa mesmo se o teste falhar
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: k6-report-${{ github.sha }}  # Adiciona o SHA do commit ao nome do relatório
           path: summary.html
@@ -42,7 +42,7 @@ jobs:
 
       - name: Verificar falhas nos testes
         if: ${{ failure() }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const issue = {
